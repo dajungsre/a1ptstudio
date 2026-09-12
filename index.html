@@ -1,0 +1,189 @@
+<title>A1 Studio Reveal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff;
+    --ink:#0e0e0c;
+    --wood:#ab8355;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Work Sans", ui-sans-serif, system-ui, sans-serif;
+    overflow:hidden;
+    height:100vh;
+    width:100vw;
+  }
+
+  @media (hover:hover) and (pointer:fine){
+    body, a, button, [role="button"]{ cursor:none; }
+  }
+  .cursor-dot{
+    position:fixed; top:0; left:0;
+    width:16px; height:16px;
+    margin:-8px 0 0 -8px;
+    pointer-events:none;
+    z-index:9999;
+    transition: opacity .2s ease;
+    will-change: transform;
+  }
+  .cursor-dot-inner{
+    width:100%; height:100%;
+    border-radius:50%;
+    background:var(--ink);
+    transition: transform .18s cubic-bezier(.2,.7,.3,1);
+  }
+  .cursor-dot.hover .cursor-dot-inner{ transform: scale(1.8); }
+  .cursor-dot.hide{ opacity:0; }
+
+  .stage{
+    position:relative;
+    width:100vw; height:100vh;
+    overflow:hidden;
+  }
+
+  .enter-hint{
+    position:absolute;
+    left:50%; bottom: clamp(16px, 3.5vh, 32px);
+    transform: translateX(-50%);
+    font-size:11px;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color: var(--ink);
+    opacity:0;
+    transition: opacity .6s ease;
+    z-index:5;
+    pointer-events:none;
+  }
+  .enter-hint.show{ opacity:.45; }
+
+  .clickable{ position:absolute; inset:0; z-index:6; }
+
+  .type-wrap{
+    position:absolute;
+    left: clamp(24px, 6vw, 64px);
+    bottom: clamp(56px, 10vh, 110px);
+    text-align:left;
+    z-index:2;
+  }
+  .type-wrap .line{
+    display:block;
+    white-space:nowrap;
+    font-family:"Archivo", "Arial Narrow", sans-serif;
+    font-weight:700;
+    font-size: clamp(76px, 15.5vw, 232px);
+    line-height:.88;
+    letter-spacing:-0.01em;
+    min-height: 1em;
+  }
+  .ch{
+    display:inline-block;
+    animation: pop .2s cubic-bezier(.2,.9,.3,1.3) both;
+  }
+  @keyframes pop{
+    from{ transform: scale(1.35) translateY(-8%); opacity:.15; }
+    to{ transform: scale(1) translateY(0); opacity:1; }
+  }
+  .caret{
+    display:inline-block;
+    color: var(--wood);
+    font-weight:400;
+    animation: blink 1s step-start infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .tagline{
+    margin-top: clamp(14px, 1.8vw, 22px);
+    font-size:12px;
+    letter-spacing:.34em;
+    text-transform:uppercase;
+    color: var(--ink);
+    opacity:.55;
+    font-weight:500;
+  }
+
+  @media (max-width: 720px){
+    .type-wrap{ bottom: 30vh; }
+  }
+</style>
+
+<div class="cursor-dot" id="cursorDot"><div class="cursor-dot-inner"></div></div>
+
+<div class="stage" id="stage">
+  <div class="type-wrap">
+    <span class="line" id="line1">A1</span>
+    <span class="line" id="line2">PT studio</span>
+    <div class="tagline">Personal Training Studio</div>
+  </div>
+
+  <div class="enter-hint" id="enterHint">Enter</div>
+  <a class="clickable" id="goMain" href="main.html" aria-label="Enter A1 PT Studio"></a>
+</div>
+
+<script>
+(function(){
+  var enterHint = document.getElementById('enterHint');
+  var line1 = document.getElementById('line1');
+  var line2 = document.getElementById('line2');
+  var words = ['A1', 'PT studio'];
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function showEnter(){
+    enterHint.classList.add('show');
+  }
+
+  var li = 0, ci = 0;
+  function activeLine(){ return li === 0 ? line1 : line2; }
+
+  function tick(){
+    var word = words[li];
+    if(ci >= word.length){
+      var caret = activeLine().querySelector('.caret');
+      if(caret) caret.remove();
+      if(li >= words.length - 1){
+        setTimeout(showEnter, 250);
+        return;
+      }
+      li++; ci = 0;
+      setTimeout(tick, 260);
+      return;
+    }
+    var line = activeLine();
+    var oldCaret = line.querySelector('.caret');
+    if(oldCaret) oldCaret.remove();
+    var ch = document.createElement('span');
+    ch.className = 'ch';
+    ch.textContent = word[ci];
+    line.appendChild(ch);
+    var caretEl = document.createElement('span');
+    caretEl.className = 'caret';
+    caretEl.textContent = '|';
+    line.appendChild(caretEl);
+    ci++;
+    setTimeout(tick, reduced ? 1 : (70 + Math.random() * 55));
+  }
+
+  line1.textContent = '';
+  line2.textContent = '';
+  setTimeout(tick, reduced ? 1 : 500);
+
+  var dot = document.getElementById('cursorDot');
+  var goMain = document.getElementById('goMain');
+  var hasFinePointer = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  if(hasFinePointer){
+    window.addEventListener('mousemove', function(e){
+      dot.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0)';
+    });
+    goMain.addEventListener('mouseenter', function(){ dot.classList.add('hover'); });
+    goMain.addEventListener('mouseleave', function(){ dot.classList.remove('hover'); });
+    document.addEventListener('mouseleave', function(){ dot.classList.add('hide'); });
+    document.addEventListener('mouseenter', function(){ dot.classList.remove('hide'); });
+  } else {
+    dot.classList.add('hide');
+  }
+})();
+</script>
